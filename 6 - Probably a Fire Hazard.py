@@ -18,31 +18,33 @@ class LightGrid(object):
 
     def get_lit_light_count(self):
         light_count = 0
-        for row in xrange(self.size):
-            for column in xrange(self.size):
-                if self.grid[row][column]:
-                    light_count += 1
+        for row in self.grid:
+            light_count += sum(row)
         return light_count
 
-    def toggle(self, coord1, coord2):
-        for y in xrange(coord1[1], coord2[1] + 1):
-            for x in xrange(coord1[0], coord2[0] + 1):
-                self.grid[y][x] = 0 if self.grid[y][x] else 1
+    def perform_instruction(self, command, coord1, coord2):
+        if command < 2:
+            for y in xrange(coord1[1], coord2[1] + 1):
+                for x in xrange(coord1[0], coord2[0] + 1):
+                    self.grid[y][x] = command
+        else:
+            for y in xrange(coord1[1], coord2[1] + 1):
+                for x in xrange(coord1[0], coord2[0] + 1):
+                    self.grid[y][x] = 0 if self.grid[y][x] else 1
 
-    def turn_on_or_off(self, command, coord1, coord2):
-        final_state = 1 if command == 'on' else 0
-        for y in xrange(coord1[1], coord2[1] + 1):
-            for x in xrange(coord1[0], coord2[0] + 1):
-                self.grid[y][x] = final_state
-
-    def perform_instruction(self, s):
+    def parse_instruction(self, s):
         words = s.split()
         if words[0] == 'toggle':
-            self.toggle(self.get_coord(words[1]), self.get_coord(words[3]))
+            command = 2
+            first_coord = self.parse_coord(words[1])
+            second_coord = self.parse_coord(words[3])
         else:
-            self.turn_on_or_off(words[1], self.get_coord(words[2]), self.get_coord(words[4]))
+            command = 1 if words[1] == 'on' else 0
+            first_coord = self.parse_coord(words[2])
+            second_coord = self.parse_coord(words[4])
+        return command, first_coord, second_coord
 
-    def get_coord(self, s):
+    def parse_coord(self, s):
         x, y = [int(x) for x in s.split(',')]
         return (x, y)
 
@@ -56,26 +58,28 @@ class Test(unittest.TestCase):
         self.maxDiff = None
 
     def test_toggle(self):
-        self.test_grid.toggle(self.test_grid.get_coord('0,0'), self.test_grid.get_coord('9,0'))
+        self.test_grid.perform_instruction(2, (0, 0), (9, 0))
         self.assertEqual(self.test_grid.grid[0], [1] * 10)
-        self.test_grid.toggle(self.test_grid.get_coord('0,0'), self.test_grid.get_coord('9,0'))
+        self.test_grid.perform_instruction(2, (0, 0), (9, 0))
         self.assertEqual(self.test_grid.grid[0], [0] * 10)
-        self.test_grid.toggle(self.test_grid.get_coord('0,0'), self.test_grid.get_coord('9,9'))
+        self.test_grid.perform_instruction(2, (0, 0), (9, 9))
         self.assertEqual(self.test_grid.grid, [[1] * 10] * 10)
 
     def test_turn_on_or_off(self):
-        self.test_grid.turn_on_or_off('on', self.test_grid.get_coord('0,0'), self.test_grid.get_coord('9,9'))
+        self.test_grid.perform_instruction(1, (0, 0), (9, 9))
         self.assertEqual(self.test_grid.grid, [[1] * 10] * 10)
-        self.test_grid.turn_on_or_off('on', self.test_grid.get_coord('0,0'), self.test_grid.get_coord('9,9'))
+        self.test_grid.perform_instruction(1, (0, 0), (9, 9))
         self.assertEqual(self.test_grid.grid, [[1] * 10] * 10)
-        self.test_grid.turn_on_or_off('off', self.test_grid.get_coord('0,0'), self.test_grid.get_coord('9,9'))
+        self.test_grid.perform_instruction(0, (0, 0), (9, 9))
         self.assertEqual(self.test_grid.grid, [[0] * 10] * 10)
 
 
-unittest.main()
+# unittest.main()
 
 grid = LightGrid(1000)
 f = open('input.txt', 'r')
 for line in f.read().split('\n'):
-    grid.perform_instruction(line)
+    command, coord1, coord2 = grid.parse_instruction(line)
+    grid.perform_instruction(command, coord1, coord2)
 print grid.get_lit_light_count()
+# 543903
