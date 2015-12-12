@@ -49,6 +49,59 @@ class LightGrid(object):
         return (x, y)
 
 
+class LightGrid2(object):
+    def __init__(self, n):
+        self.size = n
+        self.grid = self.make_grid(n)
+
+    def __repr__(self):
+        s = [[str(e) for e in row] for row in self.grid]
+        lens = [max(map(len, col)) for col in zip(*s)]
+        fmt = '\t'.join('{{:{}}}'.format(x) for x in lens)
+        table = [fmt.format(*row) for row in s]
+        return '\n'.join(table)
+
+    def make_grid(self, n):
+        grid = []
+        for i in xrange(n):
+            grid.append([0] * n)
+        return grid
+
+    def get_lit_light_count(self):
+        light_count = 0
+        for row in self.grid:
+            light_count += sum(row)
+        return light_count
+
+    def perform_instruction(self, command, coord1, coord2):
+        if command < 2:
+            for y in xrange(coord1[1], coord2[1] + 1):
+                for x in xrange(coord1[0], coord2[0] + 1):
+                    self.grid[y][x] += 1 if command else -1
+                    if self.grid[y][x] < 0:
+                        self.grid[y][x] = 0
+        else:
+            for y in xrange(coord1[1], coord2[1] + 1):
+                for x in xrange(coord1[0], coord2[0] + 1):
+                    self.grid[y][x] += 2
+
+    def parse_instruction(self, s):
+        words = s.split()
+        if words[0] == 'toggle':
+            command = 2
+            first_coord = self.parse_coord(words[1])
+            second_coord = self.parse_coord(words[3])
+        else:
+            command = 1 if words[1] == 'on' else 0
+            first_coord = self.parse_coord(words[2])
+            second_coord = self.parse_coord(words[4])
+        return command, first_coord, second_coord
+
+    def parse_coord(self, s):
+        x, y = [int(x) for x in s.split(',')]
+        return (x, y)
+
+
 import unittest
 
 
@@ -76,10 +129,11 @@ class Test(unittest.TestCase):
 
 # unittest.main()
 
-grid = LightGrid(1000)
+grid = LightGrid2(1000)
 f = open('input.txt', 'r')
 for line in f.read().split('\n'):
     command, coord1, coord2 = grid.parse_instruction(line)
     grid.perform_instruction(command, coord1, coord2)
 print grid.get_lit_light_count()
 # 543903
+# 14687245
