@@ -41,6 +41,7 @@ def part2(strings):
 f = open('input.txt', 'r')
 s = f.read()
 strings = s.split()
+f.close()
 # escape_chars = set(['\\', '\"', '\\x'])
 
 test_input = '''""
@@ -53,3 +54,12 @@ test_input = '''""
 # print strings
 print part1(strings)
 print part2(strings)
+
+
+result = 0
+with open('input.txt', 'r') as f:
+    for line in f:
+        line = line.strip()
+        result += len(line) - len(eval(line))
+print result
+f.close()
